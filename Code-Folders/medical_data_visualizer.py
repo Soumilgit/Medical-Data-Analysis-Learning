@@ -1,57 +1,77 @@
 import matplotlib.pyplot as plt
-import numpy as np
 import pandas as pd
 import seaborn as sns
 
-datf = pd.read_csv('medical_examination.csv')
 
-datf['overweight'] = (datf['weight'] / (df['height'] / 100) ** 2 > 25).astype(int)
-
-
-datf['cholesterol'] = (datf['cholesterol'] >= 1).astype(int)
-datf['gluc'] = (datf['gluc'] >= 1).astype(int)
+df = pd.read_csv('medical_examination.csv')
 
 
-def drw_cat_plt():
-    
-    datf_cat = pd.melt(datf, id_vars=['cardio'],
-                     value_vars=['cholesterol', 'smoke', 'alcohol', 'obese'])
-
-    
-    datf_cat = datf_cat.groupby(['cardio', 'variable',]).size().reset_index()
-    datf_cat = datf_cat.rename(columns={0: 'total'})
-
-    
-    graph = sns.catplot(data=datf_cat, kind="bar", x="variable", y="total", hue="value", col="cardio")
-    fig = graph.fig
-
-    
-    fig.savefig('catplot.png')
-    return fig
+df['bmi'] = df['weight'] / ((df['height'] / 100) ** 2)
+df['overweight'] = (df['bmi'] > 25).astype(int)
+df['cholesterol'] = (df['cholesterol'] > 1).astype(int)
+df['gluc'] = (df['gluc'] > 1).astype(int)
 
 
+df['alcohol'] = (df['alco'] == 'yes').astype(int)
 
-def drw_ht_mp():
-   
-    datf_heat = datf[(datf['ap_lo'] <= df['ap_hi']) &
-                 (datf['height'] >= df['height'].quantile(0.029)) &
-                 (datf['height'] <= df['height'].quantile(0.963)) &
-                 (datf['weight'] >= df['weight'].quantile(0.029)) &
-                 (datf['weight'] <= df['weight'].quantile(0.963))
-                 ]
 
-    
-    corr = datf_heat.corr()
+df_clean = df[
+    (df['ap_lo'] <= df['ap_hi']) &
+    (df['height'] >= df['height'].quantile(0.025)) &
+    (df['height'] <= df['height'].quantile(0.975)) &
+    (df['weight'] >= df['weight'].quantile(0.025)) &
+    (df['weight'] <= df['weight'].quantile(0.975))
+]
 
-    
-    mask = np.triu(np.ones_like(corr, dtype=bool))
+df_cat = pd.melt(df_clean, id_vars=['cardio'], value_vars=['cholesterol', 'gluc', 'alco', 'active', 'smoke', 'overweight', 'alcohol'])
 
-    
-    fig, ax = plt.subplots(figsize=(25,18))
+cat_plot = sns.catplot(
+    x='variable',
+    hue='value',
+    col='cardio',
+    data=df_cat,
+    kind='count',
+    height=5,
+    aspect=0.7,
+    order=['cholesterol', 'gluc', 'alco', 'active', 'smoke', 'overweight', 'alcohol'],
+    palette="Set2"
+)
 
-    
-    sns.heatmap(corr, mask=mask, square=True, linewidths=1.3, annot=True)
+cat_plot.set_axis_labels("variable", "total")
+cat_plot.set_titles("{col_name} {col_var}")
+cat_plot.set_xticklabels(['Normal', 'High'])
 
-    
-    fig.savefig('heatmap.png')
-    return fig
+plt.show()
+
+corr_matrix = df_clean.corr()
+
+fig, ax = plt.subplots(figsize=(12, 10))
+
+
+sns.heatmap(
+    corr_matrix,
+    annot=True,
+    fmt=".1f",
+    linewidths=.5,
+    square=True,
+    cmap="coolwarm",
+    cbar_kws={"shrink": 0.8},
+    mask=np.triu(corr_matrix)
+)
+
+plt.show()
+
+
+print(f"BMI vs Cholesterol Correlation: {df_clean['bmi'].corr(df_clean['cholesterol'])}")
+
+
+smoking_impact = df_clean[df_clean['smoke'] == 1].groupby('cardio')['cholesterol'].mean()
+print(f"Average Cholesterol Level for Smokers with Cardiovascular Issues: {smoking_impact.mean()}")
+
+plt.figure(figsize=(10, 6))
+sns.violinplot(x='variable', y='bmi', data=df_clean, inner=None)
+plt.title('Distribution of BMI Across Different Health Indicators')
+plt.xlabel('Health Indicator')
+plt.ylabel('BMI')
+plt.xticks(rotation=45)
+plt.show()
