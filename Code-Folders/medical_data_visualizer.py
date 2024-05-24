@@ -60,6 +60,8 @@ df_clean = df[
 ]
 
 df_cat = pd.melt(df_clean, id_vars=['cardio'], value_vars=['cholesterol', 'gluc', 'alco', 'active', 'smoke', 'overweight', 'alcohol'])
+label_dict = {0:'Normal',1:'High'}
+df_cat['value'] = df_cat['value'].map(label_dict)
 
 cat_plot = sns.catplot(
     x='variable',
