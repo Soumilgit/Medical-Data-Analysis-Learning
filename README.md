@@ -7,7 +7,7 @@
 </p>
 
 # Folder Structure :
-Here's the folder structure of the repository :
+Here is the folder structure of the repository :
 ```
 Code-Folders
 │  ├─ main.py
