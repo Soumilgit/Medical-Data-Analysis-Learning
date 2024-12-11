@@ -6,3 +6,19 @@
 <br>4.Seaborn</br>
 </p>
 
+# Folder Structure :
+Here's the folder structure of the repository :
+```
+Code-Folders
+│  ├─ main.py
+│  ├─ medical_data_visualizer.py
+│  └─ test_module.py
+├─ LICENSE
+README.md
+├─ images
+catplot.png
+│  └─ heatmap.png
+├─ medical_examination.csv
+└─ requirements.txt
+```
+
